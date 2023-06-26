@@ -2,24 +2,16 @@ import type { NextPage } from "next";
 
 const Home: NextPage = () => {
   return (
-    <form className="flex flex-col space-y-2 p-5">
-      <input
-        type="text"
-        required
-        placeholder="Username"
-        className="border p-1 peer border-gray-400 rounded-md"
-      />
-      <span className="hidden peer-invalid:block peer-invalid:text-red-500">
-        This input is invalid
-      </span>
-      <span className="hidden peer-valid:block peer-valid:text-teal-500">
-        good name
-      </span>
-      <span className="hidden peer-hover:block peer-hover:text-amber-500">
-        안녕
-      </span>
-      <input type="submit" value="Login" className="bg-white" />
-    </form>
+    <div className="flex flex-col space-y-2 p-5">
+      <details className=" open:text-white open:bg-indigo-400">
+        <summary className="select-none cursor-pointer">
+          What is my fav. food.
+        </summary>
+        <span className="selection:bg-indigo-500 selection:text-white">
+          김치
+        </span>
+      </details>
+    </div>
   );
 };
 
