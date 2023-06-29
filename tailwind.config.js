@@ -15,5 +15,5 @@ module.exports = {
     },
   },
   darkMode: "media", // media면 설정은 환경을 따라감
-  plugins: [],
+  plugins: [require("@tailwindcss/forms")],
 };
