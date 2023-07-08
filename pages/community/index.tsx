@@ -2,6 +2,7 @@ import type { NextPage } from "next";
 import Link from "next/link";
 import FloatingButton from "../components/floating-button";
 import Layout from "../components/layout";
+import React from "react";
 
 const Community: NextPage = () => {
   return (
