@@ -1,28 +1,44 @@
-import client from "../../../libs/server/client";
+import twilio from "twilio";
+import client from "@/libs/server/client";
+import withHandler, { ResponseType } from "@/libs/server/withHandler";
 import { NextApiRequest, NextApiResponse } from "next";
-import withHanlder from "../../../libs/server/withHandler";
+import smtpTransport from "@/libs/server/email";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
+
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseType>
+) {
   const { phone, email } = req.body;
-  const payload = phone ? { phone: +phone } : { email };
-  const user = await client.user.upsert({
-    where: {
-      ...payload,
+  const user = phone ? { phone: +phone } : email ? { email } : null;
+  if (!user) return res.status(400).json({ ok: false });
+  const payload = Math.floor(100000 + Math.random() * 900000) + "";
+  const token = await client.token.create({
+    data: {
+      payload,
+      user: {
+        // 토큰과 연결하기
+        connectOrCreate: {
+          where: {
+            ...user,
+          },
+          create: {
+            name: "Anonymous",
+            ...user,
+          },
+        },
+      },
     },
-    create: {
-      name: "Anonymous",
-      ...payload,
-    },
-    update: {},
   });
-  console.log(user);
-  /*   if (email) {
+  console.log(token);
+  /* if (email) {
     user = await client.user.findUnique({
       where: {
         email,
       },
     });
-    if (user) console.log("찾았다");
+    if (user) console.log("found it.");
     if (!user) {
       console.log("Did not find. Will create.");
       user = await client.user.create({
@@ -40,7 +56,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         phone: +phone,
       },
     });
-    if (user) console.log("찾았다");
+    if (user) console.log("found it.");
     if (!user) {
       console.log("Did not find. Will create.");
       user = await client.user.create({
@@ -52,8 +68,40 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     console.log(user);
   } */
-
-  return res.status(200).end();
+  if (phone) {
+    const message = await twilioClient.messages.create({
+      messagingServiceSid: process.env.TWILIO_MSID,
+      to: process.env.MY_PHONE!,
+      from: "+12344445930",
+      body: `Your Login Token is ${payload}`,
+    });
+    console.log(message);
+  }
+  if (email) {
+    const mailOptions = {
+      from: process.env.MAIL_ID,
+      to: email,
+      subject: "Nomad Carrot Authentication Email",
+      text: `Authentication Code : ${payload}`,
+    };
+    const result = await smtpTransport.sendMail(
+      mailOptions,
+      (error: any, responses: any) => {
+        if (error) {
+          console.log(error);
+          return null;
+        } else {
+          console.log(responses);
+          return null;
+        }
+      }
+    );
+    smtpTransport.close();
+    console.log(result);
+  }
+  return res.json({
+    ok: true,
+  });
 }
 
-export default withHanlder("POST", handler);
+export default withHandler("POST", handler);
