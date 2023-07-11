@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 export interface ResponseType {
   ok: boolean;
   [key: string]: any;
@@ -11,7 +10,7 @@ interface ConfigType {
   isPrivate?: boolean;
 }
 
-export default function withHanlder({
+export default function withHandler({
   method,
   isPrivate = true,
   handler,
@@ -24,7 +23,7 @@ export default function withHanlder({
       return res.status(405).end();
     }
     if (isPrivate && !req.session.user) {
-      return res.status(401).json({ ok: false, error: "로그인하셈" });
+      return res.status(401).json({ ok: false, error: "Plz log in." });
     }
     try {
       await handler(req, res);
