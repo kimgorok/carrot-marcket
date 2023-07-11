@@ -3,6 +3,7 @@ import client from "@/libs/server/client";
 import withHandler, { ResponseType } from "@/libs/server/withHandler";
 import { NextApiRequest, NextApiResponse } from "next";
 import smtpTransport from "@/libs/server/email";
+import withHanlder from "@/libs/server/withHandler";
 
 const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
@@ -104,4 +105,4 @@ async function handler(
   });
 }
 
-export default withHandler("POST", handler);
+export default withHanlder({ method: "POST", handler, isPrivate: false });
