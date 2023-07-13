@@ -22,6 +22,7 @@ model User{
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   tokens Token[]
+  products Product[]
 }
 
 model Token {
@@ -33,4 +34,18 @@ model Token {
   updatedAt DateTime @updatedAt
   
   @@index([userId])
+}
+
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+// Product의 userId 필드에 저장되는 숫자가 User model의 id가 됨
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  image       String
+  name        String
+  price       Int
+  description String @db.MediumText
 }
