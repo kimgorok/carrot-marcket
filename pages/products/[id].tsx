@@ -2,11 +2,12 @@ import type { NextPage } from "next";
 import Button from "../components/button";
 import Layout from "../components/layout";
 import { useRouter } from "next/router";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import Link from "next/link";
 import { Product, User } from "@prisma/client";
 import useMutation from "@/libs/client/useMutation";
 import { cls } from "@/libs/client/utils";
+import useUser from "@/libs/client/useUser";
 
 interface PorductWithUser extends Product {
   user: User;
@@ -20,16 +21,33 @@ interface ItemDetailResponse {
 }
 
 const ItemDetail: NextPage = () => {
+  // useUser훅을 사용하면 로그아웃 된 상태라면 /enter로 리디렉션 됨
+  const { user, isLoading } = useUser();
+
   const router = useRouter();
-  console.log(router.query);
-  const { data } = useSWR<ItemDetailResponse>(
+  // unbound mutate 함수를 가져오기 위해 사용
+  const { mutate } = useSWRConfig();
+  const { data, mutate: boundMutate } = useSWR<ItemDetailResponse>(
     router.query.id ? `/api/products/${router.query.id}` : null
   );
   const [toggleFav] = useMutation(`/api/products/${router.query.id}/fav`);
 
   // api/products/id/fav로 POST요청을 보냄
   const onFavClick = () => {
-    toggleFav({});
+    if (!data) return;
+    // Optimistic UI Update
+    // prev => 를 통해 함수 인자로 기존의 캐시에 있던 데이터를 받음
+    boundMutate((prev) => prev && { ...prev, isLiked: !prev?.isLiked }, false);
+
+    /*     // mutate는 이 컴포넌트 안에 데이터가 없어서 캐시 안에 있는 데이터가 필요함
+    mutate(
+      "/api/users/me",
+      // 기존에 요청한 데이터를 인자로 주는 함수를 보냄. prev => 를 활용해 원하는걸 수행
+      (prev: any) => ({ ok: !prev.ok }),
+      false
+    ); */
+
+    // toggleFav({});
   };
 
   return (
@@ -80,9 +98,9 @@ const ItemDetail: NextPage = () => {
                     fill="currentColor"
                   >
                     <path
-                      fill-rule="evenodd"
+                      fillRule="evenodd"
                       d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                      clip-rule="evenodd"
+                      clipRule="evenodd"
                     />
                   </svg>
                 ) : (
@@ -93,9 +111,9 @@ const ItemDetail: NextPage = () => {
                     fill="currentColor"
                   >
                     <path
-                      fill-rule="evenodd"
+                      fillRule="evenodd"
                       d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                      clip-rule="evenodd"
+                      clipRule="evenodd"
                     />
                   </svg>
                 )}
