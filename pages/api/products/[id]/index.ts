@@ -6,7 +6,11 @@ async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseType>
 ) {
-  const { id } = req.query;
+  const {
+    query: { id },
+    session: { user },
+  } = req;
+
   // db에서 product 가져오기
   const product = await client.product.findUnique({
     where: {
@@ -41,10 +45,25 @@ async function handler(
       },
     },
   });
+
+  const isLiked = Boolean(
+    await client.fav.findFirst({
+      where: {
+        productId: product?.id,
+        userId: user?.id,
+      },
+      // favorite레코드에서 모든 필드를 다 가져오지 않고 id만 가져오게
+      select: {
+        id: true,
+      },
+    })
+  );
+
   console.log(relatedProducts);
   res.json({
     ok: true,
     product,
+    isLiked,
     relatedProducts,
   });
 }
