@@ -7,7 +7,17 @@ async function handler(
   res: NextApiResponse<ResponseType>
 ) {
   if (req.method === "GET") {
-    const products = await client.product.findMany({});
+    const products = await client.product.findMany({
+      include: {
+        // _count는 relation을 카운트할 수 있게 해줌
+        // Product모델은 필드로 fav의 배열을 가지고 있으니까, 그 개수를 셀 수 있음
+        _count: {
+          select: {
+            favs: true,
+          },
+        },
+      },
+    });
     res.json({
       ok: true,
       products,
